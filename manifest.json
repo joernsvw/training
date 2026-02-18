@@ -1,8 +1,14 @@
 {
-  "short_name": "Training",
-  "name": "Training 2026",
+  "short_name": "Sport Tracker",
+  "name": "Sport Tracker",
   "description": "Fitness & Cardio Tracker",
   "icons": [
+    {
+      "src": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f45f.png",
+      "type": "image/png",
+      "sizes": "72x72",
+      "purpose": "any"
+    },
     {
       "src": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/512x512/1f45f.png",
       "type": "image/png",
@@ -11,7 +17,9 @@
     }
   ],
   "start_url": ".",
-  "display": "standalone",
   "background_color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
   "theme_color": "#121212"
 }
