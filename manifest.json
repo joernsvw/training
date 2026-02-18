@@ -1,0 +1,17 @@
+{
+  "short_name": "Training",
+  "name": "Training 2026",
+  "description": "Fitness & Cardio Tracker",
+  "icons": [
+    {
+      "src": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/512x512/1f45f.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212"
+}
