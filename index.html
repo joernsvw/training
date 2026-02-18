@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training 2026</title>
+    <!-- PWA & Icon Tags -->
+    <link rel="manifest" href="" id="manifestLink">
+    <meta name="theme-color" content="#121212">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-title" content="Training">
+
+    <!-- Cardio Icon (Running Shoe) -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1033/1033480.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1033/1033480.png">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #00e676;
+            --strength-color: #ff5252;
+            --input-bg: #2c2c2c;
+            --border-color: #333;
+
+            /* Activity Colors */
+            --col-laufen: #256670;
+            --col-fussball: #418a7a;
+            --col-rad: #9bc5d1;
+            --col-schwimm: #c5e3d6;
+            --col-kombi: #e1e3c8;
+            --col-andere: #e8f5d0;
+            --col-nix: #fcdbd9;
+            --col-kater: #f05454;
+            --col-krank: #a31818;
+
+            /* Strength Colors */
+            --col-strength-ok: #418a7a;
+            /* Football Green */
+            --col-strength-fail: #fcdbd9;
+            /* Nix Red (Light) */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .card {
+            background: var(--card-color);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #000;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active.cardio {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .toggle-btn.active.strength {
+            background: var(--strength-color);
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: #fff;
+            box-sizing: border-box;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .time-row input {
+            text-align: center;
+        }
+
+        .sport-row {
+            background: #252525;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #555;
+        }
+
+        .sport-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .col-dist {
+            flex: 1;
+        }
+
+        .col-time {
+            flex: 2;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        button.btn-save {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #000;
+            margin-top: 10px;
+        }
+
+        button.btn-sync {
+            width: 100%;
+            padding: 15px;
+            background: #2979ff;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .status-success {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .status-error {
+            background: #b71c1c;
+            color: #ffcdd2;
+        }
+
+        /* History Widget (Clean) */
+        .history-widget {
+            background: #111;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .hist-content {
+            padding: 0;
+        }
+
+        .hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            table-layout: fixed;
+        }
+
+        /* CENTER ALIGNMENT */
+        .hist-table th,
+        .hist-table td {
+            text-align: center;
+        }
+
+        .hist-table th {
+            padding: 8px 6px;
+            color: #888;
+            border-bottom: 1px solid #444;
+            background: #181818;
+            font-weight: normal;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .hist-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #222;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* Column Widths */
+        .th-day {
+            width: 15%;
+        }
+
+        /* Day */
+        .th-act {
+            width: 35%;
+        }
+
+        /* Activity */
+        .th-km {
+            width: 20%;
+        }
+
+        /* km */
+        .th-time {
+            width: 30%;
+        }
+
+        /* Time */
+
+        /* Activity Colors for Table Rows */
+        .row-laufen {
+            background-color: var(--col-laufen);
+            color: white;
+        }
+
+        .row-fussball {
+            background-color: var(--col-fussball);
+            color: white;
+        }
+
+        .row-fahrrad {
+            background-color: var(--col-rad);
+            color: black;
+        }
+
+        .row-schwimmen {
+            background-color: var(--col-schwimm);
+            color: black;
+        }
+
+        .row-kombination {
+            background-color: var(--col-kombi);
+            color: black;
+        }
+
+        .row-anderer {
+            background-color: var(--col-andere);
+            color: black;
+        }
+
+        /* Using 'anderer' class */
+        .row-nichts {
+            background-color: var(--col-nix);
+            color: black;
+        }
+
+        .row-kater {
+            background-color: var(--col-kater);
+            color: white;
+        }
+
+        .row-krank {
+            background-color: var(--col-krank);
+            color: white;
+        }
+
+        /* Strength Dynamic Colors */
+        .row-strength-ok {
+            background-color: var(--col-strength-ok);
+            color: white;
+        }
+
+        .row-strength-fail {
+            background-color: var(--col-strength-fail);
+            color: black;
+        }
+
+        /* Import Buttons Style */
+        .import-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-import {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+
+        .btn-whoop {
+            background: #000;
+            border: 1px solid #333;
+        }
+
+        .btn-strava {
+            background: #fc5200;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-color);
+            width: 90%;
+            max-width: 350px;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .import-item {
+            background: #252525;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .import-item:hover {
+            background: #333;
+        }
+
+        .item-date {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .item-main {
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .item-details {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 style="text-align:center; color:white;">Training 2026</h1>
+
+        <div id="mainView">
+            <div class="card">
+
+                <div class="import-container">
+                    <button class="btn-import btn-whoop" onclick="openImport('Whoop')">
+                        <span style="color:#fff">W</span> Whoop
+                    </button>
+                    <button class="btn-import btn-strava" onclick="openImport('Strava')">
+                        <span>🍊</span> Strava
+                    </button>
+                </div>
+
+                <div class="toggle-container">
+                    <div class="toggle-btn active cardio" onclick="setMode('cardio')">🏃 Cardio</div>
+                    <div class="toggle-btn strength" onclick="setMode('strength')">🏋️ Strength</div>
+                </div>
+
+                <!-- History Widget - Auto Switch -->
+                <div id="historyWidget" class="history-widget">
+                    <div id="histViewCardio" class="hist-content">Loading...</div>
+                    <div id="histViewStrength" class="hist-content hidden">Loading...</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Datum</label>
+                    <input type="date" id="dateInput">
+                </div>
+
+                <div id="cardioSection">
+                    <div class="form-group">
+                        <label>Tätigkeit</label>
+                        <select id="mainActivity" onchange="renderSports()">
+                            <option value="Laufen">Laufen</option>
+                            <option value="Fahrrad">Fahrrad</option>
+                            <option value="Schwimmen">Schwimmen</option>
+                            <option value="Fußball">Fußball</option>
+                            <option value="Kombination">Kombination</option>
+                            <option value="Anderer Sport">Anderer Sport</option>
+                            <option value="Nichts">Nichts</option>
+                            <option value="Krank">Krank</option>
+                            <option value="Kater">Kater</option>
+                        </select>
+                    </div>
+                    <div id="sportInputsContainer"></div>
+                </div>
+
+                <div id="strengthSection" class="hidden">
+                    <div class="sport-row">
+                        <h4>Krafttraining</h4>
+                        <div class="col-time">
+                            <label>Dauer (h:m:s)</label>
+                            <div class="time-row">
+                                <input type="number" placeholder="h" id="str-h">
+                                <input type="number" placeholder="m" id="str-m">
+                                <input type="number" placeholder="s" id="str-s">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="saveBtn" class="btn-save" onclick="saveData()">Speichern</button>
+            </div>
+
+            <button class="btn-sync" onclick="syncData()">Sync to Google ☁️</button>
+            <div id="pendingCount" style="text-align:center; color:#aaa; margin-bottom:10px;"></div>
+            <div id="statusMsg" class="status-bar"></div>
+
+            <div style="text-align:center; margin-top:20px; text-decoration:underline; color:#666;"
+                onclick="toggleSettings()">⚙️ Einstellungen</div>
+        </div>
+
+        <!-- Import Modal -->
+        <div id="importModal" class="modal-overlay" onclick="closeModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <div class="modal-title" id="modalTitle">Import</div>
+                    <button class="btn-close" onclick="closeModal()">×</button>
+                </div>
+                <div id="modalBody">
+                    <!-- Dynamic Items -->
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsView" class="card hidden">
+            <h3>Einstellungen</h3>
+            <label>Google Apps Script URL</label>
+            <input type="text" id="urlInput" placeholder="https://script.google.com/..." style="font-size:0.8rem;">
+            <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
+                <h4 style="margin-bottom:10px;">Dienste verbinden</h4>
+                <button class="btn-import btn-whoop"
+                    onclick="const wUrl=document.getElementById('urlInput').value.trim(); if(!wUrl){alert('Bitte URL eingeben!');return;} fetch(wUrl + (wUrl.includes('?') ? '&' : '?') + 'action=auth').then(r=>r.json()).then(j=>{if(j.url)window.open(j.url, '_blank');else alert('Fehler: IDs im Script prüfen.');}).catch(e=>alert('Fehler: Script-URL prüfen.'))"
+                    style="margin-bottom:10px; width:100%">
+                    Whoop verbinden
+                </button>
+                <button class="btn-import btn-strava"
+                    onclick="const sUrl=document.getElementById('urlInput').value.trim(); if(!sUrl){alert('Bitte URL eingeben!');return;} fetch(sUrl + (sUrl.includes('?') ? '&' : '?') + 'action=auth_strava').then(r=>r.json()).then(j=>{if(j.url)window.open(j.url, '_blank');else alert('Fehler: IDs im Script prüfen.');}).catch(e=>alert('Fehler: Script-URL prüfen.'))"
+                    style="margin-bottom:10px; width:100%">
+                    Strava verbinden
+                </button>
+                <div style="font-size:0.7rem; color:#888;">Hinweis: Nach der Anmeldung das Pop-up Fenster schließen.
+                </div>
+            </div>
+            <button class="btn-sync" onclick="saveSettings()" style="margin-top:20px;">Speichern & Zurück</button>
+        </div>
+    </div>
+
+    <script>
+        const dateInput = document.getElementById('dateInput');
+        let currentMode = 'cardio';
+        let rawHistory = [];
+        const sports = ['Laufen', 'Fahrrad', 'Schwimmen', 'Fußball'];
+
+        const storage = {
+            get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+            set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { } },
+            remove: (k) => { try { localStorage.removeItem(k); } catch (e) { } }
+        };
+
+        window.onload = () => {
+            dateInput.valueAsDate = new Date();
+            loadSettings();
+
+            // Update Manifest URL with correct script URL
+            const scriptUrl = storage.get('googleScriptUrl');
+            if (scriptUrl) {
+                document.getElementById('manifestLink').href = scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'action=manifest';
+            }
+
+            updatePendingUI();
+            renderSports();
+            loadHistory();
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelector('.toggle-btn.cardio').classList.toggle('active', mode === 'cardio');
+            document.querySelector('.toggle-btn.strength').classList.toggle('active', mode === 'strength');
+            document.getElementById('cardioSection').classList.toggle('hidden', mode !== 'cardio');
+            document.getElementById('strengthSection').classList.toggle('hidden', mode !== 'strength');
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.style.background = mode === 'cardio' ? 'var(--accent-color)' : 'var(--strength-color)';
+            saveBtn.style.color = mode === 'cardio' ? '#000' : '#fff';
+
+            document.getElementById('histViewCardio').classList.toggle('hidden', mode !== 'cardio');
+            document.getElementById('histViewStrength').classList.toggle('hidden', mode !== 'strength');
+        }
+
+        function renderSports() {
+            const container = document.getElementById('sportInputsContainer');
+            container.innerHTML = '';
+            const selection = document.getElementById('mainActivity').value;
+            let list = [];
+
+            if (selection === 'Kombination') list = sports;
+            else if (['Laufen', 'Fahrrad', 'Schwimmen', 'Fußball'].includes(selection)) list = [selection];
+            else if (selection === 'Anderer Sport') list = ['Anderer Sport'];
+
+            list.forEach(sport => {
+                let key = sport.toLowerCase().replace('fahrrad', 'rad').replace('ußball', 'ussball').replace('anderer sport', 'anderer');
+
+                // If "Anderer Sport", hide Distance
+                let isAnderer = (sport === 'Anderer Sport');
+                let distStyle = isAnderer ? 'display:none;' : '';
+
+                const html = `
+                    <div class="sport-row" id="row-${key}">
+                        <h4>${sport}</h4>
+                        <div class="sport-inputs">
+                            <div class="col-dist" style="${distStyle}">
+                                <label>km</label>
+                                <input type="number" step="0.01" class="inp-dist" placeholder="0">
+                            </div>
+                            <div class="col-time">
+                                <label>Zeit (h:m:s)</label>
+                                <div class="time-row">
+                                    <input type="number" placeholder="h" class="inp-h">
+                                    <input type="number" placeholder="m" class="inp-m">
+                                    <input type="number" placeholder="s" class="inp-s">
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function saveData() {
+            try {
+                const entry = {
+                    type: currentMode,
+                    datum: dateInput.value,
+                    timestamp: new Date().toISOString(),
+                    taetigkeit: document.getElementById('mainActivity').value,
+                    values: { laufen: {}, rad: {}, schwimmen: {}, fussball: {}, strength: {}, anderer: {} }
+                };
+
+                if (currentMode === 'cardio') {
+                    document.querySelectorAll('.sport-row').forEach(row => {
+                        if (row.parentElement.id !== 'sportInputsContainer') return;
+                        const key = row.id.replace('row-', '');
+                        entry.values[key] = {
+                            dist: (row.querySelector('.inp-dist').value || "0").replace('.', ','),
+                            h: row.querySelector('.inp-h').value || 0,
+                            m: row.querySelector('.inp-m').value || 0,
+                            s: row.querySelector('.inp-s').value || 0
+                        };
+                    });
+                } else {
+                    entry.values.strength = {
+                        h: document.getElementById('str-h').value || 0,
+                        m: document.getElementById('str-m').value || 0,
+                        s: document.getElementById('str-s').value || 0
+                    };
+                }
+
+                const data = JSON.parse(storage.get('trainingData') || '[]');
+                data.push(entry);
+                storage.set('trainingData', JSON.stringify(data));
+                showStatus('Gespeichert!', 'success');
+                updatePendingUI();
+                document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
+            } catch (e) { showStatus(e.message, 'error'); }
+        }
+
+        async function loadHistory() {
+            const url = storage.get('googleScriptUrl');
+            if (!url) { document.getElementById('historyWidget').style.display = 'none'; return; }
+            document.getElementById('historyWidget').style.display = 'block';
+            try {
+                const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=getHistory');
+                const json = await res.json();
+                if (json.status === 'success') { rawHistory = json.data; renderHistTables(); }
+            } catch (e) { }
+        }
+
+        function renderHistTables() {
+            const today = new Date();
+            const targetDays = [];
+            // Erzeuge Liste der letzten 6 Tage (heute + 5 zurück)
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                targetDays.push(d.getDate());
+            }
+
+            const getCls = (txt) => {
+                if (!txt) return '';
+                txt = txt.toLowerCase();
+                if (txt.includes('laufen')) return 'row-laufen';
+                if (txt.includes('rad') || txt.includes('fahrrad')) return 'row-fahrrad';
+                if (txt.includes('schwimm')) return 'row-schwimmen';
+                if (txt.includes('fussball') || txt.includes('fußball')) return 'row-fussball';
+                if (txt.includes('kombi')) return 'row-kombination';
+                if (txt.includes('andere')) return 'row-anderer';
+                if (txt.includes('nich') || txt.includes('nix')) return 'row-nichts';
+                if (txt.includes('kater')) return 'row-kater';
+                if (txt.includes('krank')) return 'row-krank';
+                return '';
+            };
+
+            // Render Cardio
+            let cHtml = `<table class="hist-table"><thead><tr><th class="th-day">Tag</th><th class="th-act">Activity</th><th class="th-km">km</th><th class="th-time">Zeit</th></tr></thead><tbody>`;
+            targetDays.forEach(dayNum => {
+                const entry = rawHistory.find(i => i.day === dayNum);
+                const cls = entry && entry.c_act ? getCls(entry.c_act) : '';
+                let dist = (entry && entry.c_km) || '';
+                if (typeof dist === 'number') dist = dist.toFixed(2).replace('.', ',');
+
+                cHtml += `<tr class="${cls}">
+                    <td>${dayNum}.</td>
+                    <td>${(entry && entry.c_act) || '-'}</td>
+                    <td>${dist}</td>
+                    <td>${(entry && entry.c_time) || '-'}</td>
+                </tr>`;
+            });
+            cHtml += `</tbody></table>`;
+            document.getElementById('histViewCardio').innerHTML = cHtml;
+
+            // Render Strength
+            let sHtml = `<table class="hist-table"><thead><tr><th class="th-day">Tag</th><th style="width:auto">Dauer</th></tr></thead><tbody>`;
+            targetDays.forEach(dayNum => {
+                const entry = rawHistory.find(i => i.day === dayNum);
+                let time = (entry && entry.s_time) || '-';
+                let sCls = 'row-strength-fail'; // Default "-" (Red)
+                if (time && time.trim() !== '-' && time.length > 2) {
+                    sCls = 'row-strength-ok'; // Football Green
+                }
+                if (time === '-') sCls = ''; // Neutral if explicitly empty
+
+                sHtml += `<tr class="${sCls}"><td>${dayNum}.</td><td>${time}</td></tr>`;
+            });
+            sHtml += `</tbody></table>`;
+            document.getElementById('histViewStrength').innerHTML = sHtml;
+        }
+
+        async function syncData() {
+            const url = storage.get('googleScriptUrl');
+            if (!url) { toggleSettings(); return; }
+            const data = JSON.parse(storage.get('trainingData') || '[]');
+            if (data.length === 0) { showStatus('Leer', 'error'); return; }
+
+            showStatus('Sende...', 'success');
+            try {
+                const res = await fetch(url + "?action=post", { method: 'POST', body: JSON.stringify(data) });
+                const json = await res.json();
+                if (json.status === 'success') {
+                    showStatus('Erfolgreich!', 'success');
+                    storage.remove('trainingData');
+                    updatePendingUI();
+                    loadHistory();
+                } else throw new Error(json.message);
+            } catch (e) { showStatus('Fehler: ' + e.message, 'error'); }
+        }
+
+        function updatePendingUI() {
+            const n = JSON.parse(storage.get('trainingData') || '[]').length;
+            document.getElementById('pendingCount').textContent = n > 0 ? `${n} Offline` : "Alles Sync ✅";
+        }
+        function showStatus(m, t) {
+            const el = document.getElementById('statusMsg');
+            el.textContent = m; el.className = `status-bar status-${t}`; el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 4000);
+        }
+        function toggleSettings() {
+            document.getElementById('mainView').classList.toggle('hidden');
+            document.getElementById('settingsView').classList.toggle('hidden');
+        }
+        function saveSettings() {
+            const url = document.getElementById('urlInput').value;
+            if (url) storage.set('googleScriptUrl', url);
+            toggleSettings();
+            loadHistory();
+        }
+        function loadSettings() {
+            const url = storage.get('googleScriptUrl');
+            if (url) document.getElementById('urlInput').value = url;
+            else { document.getElementById('mainView').classList.add('hidden'); document.getElementById('settingsView').classList.remove('hidden'); }
+        }
+
+        // --- Import Logic ---
+        async function openImport(source) {
+            const url = storage.get('googleScriptUrl');
+            if (!url) { toggleSettings(); return; }
+
+            const modal = document.getElementById('importModal');
+            document.getElementById('modalTitle').innerText = source + ' (Letzte 7 Tage)';
+            modal.classList.add('active');
+
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Lade Daten...</div>';
+
+            const action = source === 'Whoop' ? 'getWhoopData' : 'getStravaData';
+            try {
+                const res = await fetch(url + "?action=" + action);
+                const json = await res.json();
+
+                if (json.status === 'success') {
+                    const data = json.data.activities || [];
+                    const debug = json.data.debug || {};
+                    renderImportItems(data, source, debug);
+                } else {
+                    body.innerHTML = `<div style="text-align:center; padding:20px; color:#ff5252;">${json.message || 'Fehler beim Laden. Bitte ' + source + ' neu verbinden.'}</div>`;
+                }
+            } catch (e) {
+                body.innerHTML = '<div style="text-align:center; padding:20px; color:#ff5252;">Fehler: Script-Zugriff verweigert.</div>';
+            }
+        }
+
+        function renderImportItems(items, source, debug = {}) {
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '';
+
+            if (items.length === 0) {
+                let debugHtml = '';
+                if (debug.workout || debug.recovery) {
+                    debugHtml = `
+                        <div style="margin-top:20px; padding:10px; background:#111; border-radius:6px; font-size:0.7rem; color:#555; text-align:left;">
+                            <strong>Debug Info:</strong><br>
+                            Workouts: HTTP ${debug.workout?.code || '?'}<br>
+                            Recovery: HTTP ${debug.recovery?.code || '?'}<br>
+                            <div style="margin-top:5px; font-family:monospace; color:#444;">${debug.workout?.snippet || ''}</div>
+                        </div>`;
+                }
+                body.innerHTML = `<div style="text-align:center; padding:20px; color:#888;">Keine Aktivitäten gefunden.${debugHtml}</div>`;
+                return;
+            }
+
+            items.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'import-item';
+                el.style.borderLeftColor = item.sportId === 123 ? 'var(--strength-color)' : (source === 'Whoop' ? '#000' : '#fc5200');
+
+                let details = '';
+                if (item.type === 'workout') {
+                    details = `Dauer: ${item.h}h ${item.m}m ${item.s}s ${item.dist ? ' | ' + item.dist + ' km' : ''}`;
+                } else if (item.type === 'recovery') {
+                    details = `Recovery Score: ${item.score}%`;
+                }
+
+                el.innerHTML = `
+                    <div class="item-date">${item.dateStr}</div>
+                    <div class="item-main">
+                        <span>${item.act}</span>
+                        <span>${item.type === 'recovery' ? item.score + '%' : ''}</span>
+                    </div>
+                    <div class="item-details">${details}</div>
+                `;
+
+                el.onclick = () => applyImport(item);
+                body.appendChild(el);
+            });
+        }
+
+        function closeModal(e) {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        function applyImport(item) {
+            if (item.type === 'recovery') {
+                showStatus('Recovery kann nur angezeigt werden.', 'error');
+                return;
+            }
+
+            const datumInput = document.getElementById('dateInput');
+            datumInput.value = item.isoDate;
+
+            if (item.act.includes('Krafttraining')) {
+                setMode('strength');
+                document.getElementById('str-h').value = item.h || 0;
+                document.getElementById('str-m').value = item.m || 0;
+                document.getElementById('str-s').value = item.s || 0;
+            } else {
+                setMode('cardio');
+                document.getElementById('mainActivity').value = mapToLocalActivity(item.act);
+                renderSports();
+
+                setTimeout(() => {
+                    const row = document.querySelector('.sport-row');
+                    if (row) {
+                        if (item.dist) row.querySelector('.inp-dist').value = item.dist.replace(',', '.');
+                        row.querySelector('.inp-h').value = item.h || 0;
+                        row.querySelector('.inp-m').value = item.m || 0;
+                        row.querySelector('.inp-s').value = item.s || 0;
+                    }
+                }, 50);
+            }
+
+            closeModal();
+            showStatus('Daten übernommen!', 'success');
+        }
+
+        function mapToLocalActivity(whoopAct) {
+            if (whoopAct.includes('Rad')) return 'Fahrrad';
+            if (whoopAct.includes('Laufen')) return 'Laufen';
+            if (whoopAct.includes('Schwimm')) return 'Schwimmen';
+            if (whoopAct.includes('Fußball')) return 'Fußball';
+            if (whoopAct.includes('Kraft')) return 'Krafttraining';
+            return 'Anderer Sport';
+        }
+    </script>
+</body>
+
+</html>
