@@ -447,22 +447,29 @@
             font-size: 0.8rem;
             color: #aaa;
         }
+
+        .btn-whoop img,
+        .btn-strava img {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1 style="text-align:center; color:white;">Training 2026</h1>
+        <h1 style="text-align:center; color:white; margin-bottom: 20px;">Sport Tracker</h1>
 
         <div id="mainView">
             <div class="card">
 
                 <div class="import-container">
                     <button class="btn-import btn-whoop" onclick="openImport('Whoop')">
-                        <span style="color:#fff">W</span> Whoop
+                        <img src="https://logo.clearbit.com/whoop.com" alt="Whoop"> Whoop
                     </button>
                     <button class="btn-import btn-strava" onclick="openImport('Strava')">
-                        <span>🍊</span> Strava
+                        <img src="https://logo.clearbit.com/strava.com" alt="Strava"> Strava
                     </button>
                 </div>
 
