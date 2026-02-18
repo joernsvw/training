@@ -6,17 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training 2026</title>
     <!-- PWA & Icon Tags -->
-    <link rel="manifest" href="" id="manifestLink">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-title" content="Training">
 
-    <!-- Cardio Icon (Running Shoe) -->
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1033/1033480.png">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1033/1033480.png">
+    <!-- Cardio Icon (Running Shoe Emoji PNG) -->
+    <link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f45f.png">
+    <link rel="icon" type="image/png" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/512x512/1f45f.png">
 
     <style>
         :root {
@@ -575,13 +576,6 @@
         window.onload = () => {
             dateInput.valueAsDate = new Date();
             loadSettings();
-
-            // Update Manifest URL with correct script URL
-            const scriptUrl = storage.get('googleScriptUrl');
-            if (scriptUrl) {
-                document.getElementById('manifestLink').href = scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'action=manifest';
-            }
-
             updatePendingUI();
             renderSports();
             loadHistory();
