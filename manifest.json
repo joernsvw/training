@@ -1,25 +1,19 @@
 {
-  "short_name": "Sport Tracker",
-  "name": "Sport Tracker",
-  "description": "Fitness & Cardio Tracker",
+  "short_name": "Training",
+  "name": "Training",
+  "description": "Premium Fitness & Training Tracker",
   "icons": [
     {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f45f.png",
-      "type": "image/png",
-      "sizes": "72x72",
-      "purpose": "any"
-    },
-    {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/512x512/1f45f.png",
-      "type": "image/png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23121212'/%3E%3Cpath d='M100 256h60l40-100 60 200 60-150 40 50h60' stroke='%2300e676' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "type": "image/svg+xml",
       "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
   "start_url": ".",
-  "background_color": "#121212",
   "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
   "orientation": "portrait",
-  "scope": "/",
-  "theme_color": "#121212"
+  "scope": "/"
 }
