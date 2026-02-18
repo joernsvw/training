@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Training 2026</title>
+    <title>Training</title>
     <!-- PWA & Icon Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
@@ -15,9 +15,11 @@
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-title" content="Training">
 
-    <!-- Cardio Icon (Running Shoe Emoji PNG) -->
-    <link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f45f.png">
-    <link rel="icon" type="image/png" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/512x512/1f45f.png">
+    <!-- Performance Pulse Icon (Embedded SVG for reliability) -->
+    <link rel="apple-touch-icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23121212'/%3E%3Cpath d='M100 256h60l40-100 60 200 60-150 40 50h60' stroke='%2300e676' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23121212'/%3E%3Cpath d='M100 256h60l40-100 60 200 60-150 40 50h60' stroke='%2300e676' stroke-width='30' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
     <style>
         :root {
@@ -459,17 +461,23 @@
 
 <body>
     <div class="container">
-        <h1 style="text-align:center; color:white; margin-bottom: 20px;">Sport Tracker</h1>
+        <h1 style="text-align:center; color:white; margin-bottom: 20px;">Training</h1>
 
         <div id="mainView">
             <div class="card">
 
                 <div class="import-container">
                     <button class="btn-import btn-whoop" onclick="openImport('Whoop')">
-                        <img src="https://logo.clearbit.com/whoop.com" alt="Whoop"> Whoop
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M12 0L10.3 4.8H5.2L3.5 0H0L3.5 9.6H5.2L6.9 4.8L8.6 9.6H10.3L12 4.8L13.7 9.6H15.4L17.1 4.8L18.8 9.6H20.5L24 0H20.5L18.8 4.8L17.1 0H15.4L13.7 4.8L12 0Z" />
+                        </svg>&nbsp;Whoop
                     </button>
                     <button class="btn-import btn-strava" onclick="openImport('Strava')">
-                        <img src="https://logo.clearbit.com/strava.com" alt="Strava"> Strava
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="%23FC5200">
+                            <path
+                                d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.065m-7.008-5.596l2.836 5.596h4.142L11.215 0 2.105 17.944h4.142l2.132-4.116z" />
+                        </svg>&nbsp;Strava
                     </button>
                 </div>
 
