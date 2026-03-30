@@ -767,7 +767,12 @@
 
             showStatus('Sende...', 'success');
             try {
-                const res = await fetch(url + "?action=post", { method: 'POST', body: JSON.stringify(data) });
+                const res = await fetch(url + "?action=post", { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow',
+                    body: JSON.stringify(data) 
+                });
                 const json = await res.json();
                 if (json.status === 'success') {
                     showStatus('Erfolgreich!', 'success');
