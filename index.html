@@ -572,7 +572,9 @@
                 <div style="font-size:0.7rem; color:#888;">Hinweis: Nach der Anmeldung das Pop-up Fenster schließen.
                 </div>
             </div>
-            <button class="btn-sync" onclick="saveSettings()" style="margin-top:20px;">Speichern & Zurück</button>
+            <button class="btn-sync" onclick="clearOfflineData()"
+                style="margin-top:20px; background-color:#b71c1c;">Offline-Daten löschen</button>
+            <button class="btn-sync" onclick="saveSettings()" style="margin-top:10px;">Speichern & Zurück</button>
         </div>
     </div>
 
@@ -767,11 +769,11 @@
 
             showStatus('Sende...', 'success');
             try {
-                const res = await fetch(url + "?action=post", { 
-                    method: 'POST', 
+                const res = await fetch(url + "?action=post", {
+                    method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     redirect: 'follow',
-                    body: JSON.stringify(data) 
+                    body: JSON.stringify(data)
                 });
                 const json = await res.json();
                 if (json.status === 'success') {
@@ -801,6 +803,13 @@
             if (url) storage.set('googleScriptUrl', url);
             toggleSettings();
             loadHistory();
+        }
+        function clearOfflineData() {
+            if (confirm('Möchtest du wirklich alle noch nicht synchronisierten Einträge löschen?')) {
+                storage.remove('trainingData');
+                updatePendingUI();
+                alert('Offline-Daten wurden gelöscht.');
+            }
         }
         function loadSettings() {
             const url = storage.get('googleScriptUrl');
