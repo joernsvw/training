@@ -456,6 +456,41 @@
             height: 18px;
             object-fit: contain;
         }
+
+        .import-item.selected {
+            background: #3a3a3a;
+            border-left-width: 6px !important;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+        }
+
+        .import-item.multiselect-active {
+            padding-left: 35px;
+            position: relative;
+        }
+
+        .import-item.multiselect-active::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            border: 1px solid #888;
+            border-radius: 3px;
+            background: transparent;
+        }
+
+        .import-item.multiselect-active.selected::before {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            content: '✓';
+            color: #000;
+            font-size: 10px;
+            line-height: 14px;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -549,6 +584,10 @@
                 </div>
                 <div id="modalBody">
                     <!-- Dynamic Items -->
+                </div>
+                <div id="modalFooter" class="hidden" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; display: flex; gap: 10px;">
+                    <button class="btn-sync" onclick="cancelMultiSelect()" style="margin-bottom:0; background-color:#555;">Abbrechen</button>
+                    <button class="btn-save" onclick="confirmMultiSelect()" style="margin-top:0; flex:1;">Auswahl übernehmen</button>
                 </div>
             </div>
         </div>
@@ -748,12 +787,23 @@
             let sHtml = `<table class="hist-table"><thead><tr><th class="th-day">Tag</th><th style="width:auto">Dauer</th></tr></thead><tbody>`;
             targetDays.forEach(dayNum => {
                 const entry = rawHistory.find(i => i.day === dayNum);
-                let time = (entry && entry.s_time) || '-';
-                let sCls = 'row-strength-fail'; // Default "-" (Red)
-                if (time && time.trim() !== '-' && time.length > 2) {
-                    sCls = 'row-strength-ok'; // Football Green
+                
+                let time = '-';
+                let sCls = ''; // Default: neutral (black) for not entered
+                
+                if (entry && entry.s_time !== null && entry.s_time !== undefined && entry.s_time !== '') {
+                    time = entry.s_time;
+                    if (time === '-') {
+                        sCls = 'row-strength-fail'; // Red for explicit "-" / 0
+                    } else {
+                        const cleanTime = time.trim();
+                        if (cleanTime === '0:00:00' || cleanTime === '00:00:00' || cleanTime === '0') {
+                            sCls = 'row-strength-fail';
+                        } else {
+                            sCls = 'row-strength-ok'; // Green for actual duration
+                        }
+                    }
                 }
-                if (time === '-') sCls = ''; // Neutral if explicitly empty
 
                 sHtml += `<tr class="${sCls}"><td>${dayNum}.</td><td>${time}</td></tr>`;
             });
@@ -818,7 +868,12 @@
         }
 
         // --- Import Logic ---
+        // --- Import Logic ---
+        let isMultiSelectActive = false;
+        let selectedImportItems = [];
+
         async function openImport(source) {
+            cancelMultiSelect(); // Reset multi-select state
             const url = storage.get('googleScriptUrl');
             if (!url) { toggleSettings(); return; }
 
@@ -865,9 +920,10 @@
                 return;
             }
 
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 const el = document.createElement('div');
                 el.className = 'import-item';
+                el.id = `import-item-${index}`;
                 el.style.borderLeftColor = item.sportId === 123 ? 'var(--strength-color)' : (source === 'Whoop' ? '#000' : '#fc5200');
 
                 let details = '';
@@ -886,13 +942,195 @@
                     <div class="item-details">${details}</div>
                 `;
 
-                el.onclick = () => applyImport(item);
+                // Long Press & Click Detection using Pointer Events
+                let pressTimer;
+                let isLongPress = false;
+
+                el.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return; // Only primary button
+                    isLongPress = false;
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        if (item.type !== 'recovery') {
+                            startMultiSelect(item, el, items);
+                        }
+                    }, 600);
+                });
+
+                el.addEventListener('pointerup', () => {
+                    clearTimeout(pressTimer);
+                    if (!isLongPress) {
+                        if (isMultiSelectActive) {
+                            if (item.type !== 'recovery') {
+                                toggleSelectItem(item, el);
+                            }
+                        } else {
+                            applyImport(item);
+                        }
+                    }
+                });
+
+                el.addEventListener('pointercancel', () => clearTimeout(pressTimer));
+                el.addEventListener('pointerleave', () => clearTimeout(pressTimer));
+
                 body.appendChild(el);
             });
         }
 
         function closeModal(e) {
             document.getElementById('importModal').classList.remove('active');
+            cancelMultiSelect(); // Clean up state when closing
+        }
+
+        function startMultiSelect(firstItem, firstEl, allItems) {
+            if (isMultiSelectActive) return;
+            isMultiSelectActive = true;
+            
+            // Add multiselect-active class to non-recovery items
+            document.querySelectorAll('.import-item').forEach(el => {
+                const index = parseInt(el.id.replace('import-item-', ''));
+                const item = allItems[index];
+                if (item && item.type !== 'recovery') {
+                    el.classList.add('multiselect-active');
+                }
+            });
+
+            // Show footer
+            document.getElementById('modalFooter').classList.remove('hidden');
+
+            // Select the item that was long-pressed
+            toggleSelectItem(firstItem, firstEl);
+        }
+
+        function toggleSelectItem(item, el) {
+            const index = selectedImportItems.indexOf(item);
+            if (index > -1) {
+                selectedImportItems.splice(index, 1);
+                el.classList.remove('selected');
+            } else {
+                selectedImportItems.push(item);
+                el.classList.add('selected');
+            }
+
+            // If nothing is selected, cancel multi-select
+            if (selectedImportItems.length === 0) {
+                cancelMultiSelect();
+            }
+        }
+
+        function cancelMultiSelect() {
+            isMultiSelectActive = false;
+            selectedImportItems = [];
+            document.querySelectorAll('.import-item').forEach(el => {
+                el.classList.remove('multiselect-active', 'selected');
+            });
+            const footer = document.getElementById('modalFooter');
+            if (footer) footer.classList.add('hidden');
+        }
+
+        function confirmMultiSelect() {
+            if (selectedImportItems.length === 0) return;
+            applyMultiImport(selectedImportItems);
+            cancelMultiSelect();
+        }
+
+        function secondsToHms(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            return { h, m, s };
+        }
+
+        function applyMultiImport(items) {
+            if (items.length === 0) return;
+
+            const datumInput = document.getElementById('dateInput');
+            datumInput.value = items[0].isoDate;
+
+            // Group and aggregate
+            const aggregated = {
+                'Laufen': { dist: 0, seconds: 0 },
+                'Fahrrad': { dist: 0, seconds: 0 },
+                'Schwimmen': { dist: 0, seconds: 0 },
+                'Fußball': { dist: 0, seconds: 0 },
+                'Krafttraining': { seconds: 0 },
+                'Anderer Sport': { seconds: 0 }
+            };
+
+            items.forEach(item => {
+                const localAct = mapToLocalActivity(item.act);
+                const secs = (parseInt(item.h) || 0) * 3600 + (parseInt(item.m) || 0) * 60 + (parseInt(item.s) || 0);
+                const dist = parseFloat((item.dist || "0").toString().replace(',', '.')) || 0;
+                
+                if (aggregated[localAct]) {
+                    aggregated[localAct].seconds += secs;
+                    if (aggregated[localAct].dist !== undefined) {
+                        aggregated[localAct].dist += dist;
+                    }
+                }
+            });
+
+            const activeSports = Object.keys(aggregated).filter(sport => {
+                if (sport === 'Krafttraining' || sport === 'Anderer Sport') {
+                    return aggregated[sport].seconds > 0;
+                }
+                return aggregated[sport].seconds > 0 || aggregated[sport].dist > 0;
+            });
+
+            if (activeSports.length === 1 && activeSports[0] === 'Krafttraining') {
+                setMode('strength');
+                const hms = secondsToHms(aggregated['Krafttraining'].seconds);
+                document.getElementById('str-h').value = hms.h || 0;
+                document.getElementById('str-m').value = hms.m || 0;
+                document.getElementById('str-s').value = hms.s || 0;
+            } else {
+                setMode('cardio');
+                
+                // Filter out Strength for Cardio Mode
+                const cardioSports = activeSports.filter(s => s !== 'Krafttraining');
+                
+                if (cardioSports.length === 1) {
+                    const sport = cardioSports[0];
+                    document.getElementById('mainActivity').value = sport;
+                    renderSports();
+
+                    setTimeout(() => {
+                        let key = sport.toLowerCase().replace('fahrrad', 'rad').replace('ußball', 'ussball').replace('anderer sport', 'anderer');
+                        const row = document.getElementById(`row-${key}`);
+                        if (row) {
+                            if (aggregated[sport].dist > 0) {
+                                row.querySelector('.inp-dist').value = aggregated[sport].dist.toFixed(2);
+                            }
+                            const hms = secondsToHms(aggregated[sport].seconds);
+                            row.querySelector('.inp-h').value = hms.h || 0;
+                            row.querySelector('.inp-m').value = hms.m || 0;
+                            row.querySelector('.inp-s').value = hms.s || 0;
+                        }
+                    }, 50);
+                } else if (cardioSports.length > 1) {
+                    document.getElementById('mainActivity').value = 'Kombination';
+                    renderSports();
+
+                    setTimeout(() => {
+                        cardioSports.forEach(sport => {
+                            let key = sport.toLowerCase().replace('fahrrad', 'rad').replace('ußball', 'ussball').replace('anderer sport', 'anderer');
+                            const row = document.getElementById(`row-${key}`);
+                            if (row) {
+                                if (aggregated[sport].dist > 0) {
+                                    row.querySelector('.inp-dist').value = aggregated[sport].dist.toFixed(2);
+                                }
+                                const hms = secondsToHms(aggregated[sport].seconds);
+                                row.querySelector('.inp-h').value = hms.h || 0;
+                                row.querySelector('.inp-m').value = hms.m || 0;
+                                row.querySelector('.inp-s').value = hms.s || 0;
+                            }
+                        });
+                    }, 50);
+                }
+            }
+
+            closeModal();
+            showStatus('Daten addiert und übernommen!', 'success');
         }
 
         function applyImport(item) {
@@ -929,12 +1167,13 @@
             showStatus('Daten übernommen!', 'success');
         }
 
-        function mapToLocalActivity(whoopAct) {
-            if (whoopAct.includes('Rad')) return 'Fahrrad';
-            if (whoopAct.includes('Laufen')) return 'Laufen';
-            if (whoopAct.includes('Schwimm')) return 'Schwimmen';
-            if (whoopAct.includes('Fußball')) return 'Fußball';
-            if (whoopAct.includes('Kraft')) return 'Krafttraining';
+        function mapToLocalActivity(act) {
+            if (!act) return 'Anderer Sport';
+            if (act.includes('Rad') || act.includes('Ride')) return 'Fahrrad';
+            if (act.includes('Laufen') || act.includes('Run')) return 'Laufen';
+            if (act.includes('Schwimm') || act.includes('Swim')) return 'Schwimmen';
+            if (act.includes('Fußball') || act.includes('Soccer')) return 'Fußball';
+            if (act.includes('Kraft') || act.includes('Strength') || act.includes('Weight')) return 'Krafttraining';
             return 'Anderer Sport';
         }
     </script>
